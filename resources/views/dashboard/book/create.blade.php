@@ -94,7 +94,7 @@
                              </div>
                          </div>
                          <div class="flex gap-2 mt-5">
-                             <x-primary-button>
+                             <x-primary-button type="submit">
                                  Save Changes
                              </x-primary-button>
                              <a href="{{ route('book.index') }}">
