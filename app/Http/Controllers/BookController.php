@@ -30,13 +30,13 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request,)
+    public function store(Request $request)
     {
-        $book = Book::all();
-        dd($request->title);
+        $id = session('current_id', 1);
+
         //validate form
         $this->validate($request, [
-            'book_code' => 'required|unique:books,book_code,' . $book->id,
+            'book_code' => 'required|unique:books,book_code',
             'title' => 'required|max:225',
             'author' => 'required',
             'publish_date' => 'nullable',
@@ -44,12 +44,14 @@ class BookController extends Controller
             'image' => 'required|image|mimes:jpeg,jpg,png|max:2048',
             'book_category_id' => 'nullable|exists:book_categories,id',
         ]);
+
+        $id++;
         //upload image
         $image = $request->file('image');
         $image->storeAs('public/book/', $image->hashName());
         //create post
         Book::create([
-            'book_code' => $request->book_code,
+            'book_code' => $request->book_code . $id,
             'title' => $request->title,
             'author' => $request->author,
             'publish_date' => $request->publish_date,
@@ -57,9 +59,9 @@ class BookController extends Controller
             'image' => $image->hashName(),
             'book_category_id' => $request->book_category_id,
         ]);
-
+        session(['current_id' => $id]);
         //redirect to index
-            return redirect()->route('book.index')->with(['success' => 'Data Berhasil Disimpan!']);
+        return redirect()->route('book.index')->with(['success' => 'Data Berhasil Disimpan!']);
     }
 
     /**
@@ -77,7 +79,7 @@ class BookController extends Controller
     public function edit(Book $book)
     {
         $bookCategory = BookCategory::all();
-        return view('dashboard.book.edit', compact('book','bookCategory'));
+        return view('dashboard.book.edit', compact('book', 'bookCategory'));
     }
 
     /**
@@ -97,7 +99,7 @@ class BookController extends Controller
         ]);
 
 
-        if($request->hasFile('image')){
+        if ($request->hasFile('image')) {
 
             $image = $request->file('image');
             $image->storeAs('public/book/', $image->hashName());
@@ -113,7 +115,7 @@ class BookController extends Controller
                 'image' => $image->hashName(),
                 'book_category_id' => $request->book_category_id,
             ]);
-          }else {
+        } else {
 
             $book->update([
                 'book_code' => $request->book_code,
@@ -123,8 +125,8 @@ class BookController extends Controller
                 'stock' => $request->stock,
                 'book_category_id' => $request->book_category_id,
             ]);
-          }
-          return redirect()->route('book.index')->with(['success' => 'Data Berhasil Diubah!']);
+        }
+        return redirect()->route('book.index')->with(['success' => 'Data Berhasil Diubah!']);
     }
 
     /**
@@ -135,7 +137,7 @@ class BookController extends Controller
 
         $old_image = $book->image;
         $book->delete();
-        if(!empty($old_image) && (Storage::disk('public'))->exists($old_image)){
+        if (!empty($old_image) && (Storage::disk('public'))->exists($old_image)) {
             Storage::disk('public')->delete($old_image);
         }
         return to_route('book.index');
